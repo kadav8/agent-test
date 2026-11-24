@@ -1,0 +1,15 @@
+config_version=5
+
+[application]
+config/name="Ashen Crown"
+run/main_scene="res://world/arena.tscn"
+
+[display]
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+environment/defaults/default_clear_color=Color(0.075, 0.082, 0.095, 1)
