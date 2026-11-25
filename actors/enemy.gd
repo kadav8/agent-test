@@ -21,6 +21,9 @@ var stagger_duration := 0.0
 var vulnerable := false
 var swings := 0
 var anim := 0.0
+var territory := Vector2(-INF, INF)
+var attack_permission: Callable
+var elite := false
 
 func enter(next: State) -> void:
 	state = next
@@ -39,6 +42,8 @@ func reset_at(point: Vector2) -> void:
 	enter(State.IDLE)
 
 func sees_player() -> bool:
+	if target.position.x < territory.x or target.position.x > territory.y:
+		return false
 	if target.vitals.health <= 0 or global_position.distance_to(target.global_position) > 400:
 		return false
 	var ray := PhysicsRayQueryParameters2D.create(global_position, target.global_position, 1)
@@ -76,7 +81,9 @@ func _physics_process(delta: float) -> void:
 			facing = direction
 			velocity.x = facing * 113
 			if distance < 87 and absf(offset.y) < 43 and sees_player():
-				start_attack()
+				velocity.x = 0
+				if not attack_permission.is_valid() or attack_permission.call(self):
+					start_attack()
 			elif not sees_player() and elapsed > 1.2:
 				enter(State.RETREAT)
 		State.ATTACK:
@@ -110,6 +117,8 @@ func _physics_process(delta: float) -> void:
 				enter(State.DETECT)
 		State.DEAD:
 			velocity.x = 0
+	if (position.x <= territory.x and velocity.x < 0) or (position.x >= territory.y and velocity.x > 0):
+		velocity.x = 0
 	move_and_slide()
 	queue_redraw()
 
@@ -154,6 +163,8 @@ func _draw() -> void:
 	if state == State.DEAD:
 		draw_set_transform(Vector2(0,8), -PI/2, Vector2.ONE)
 	var plate := Color("#73776c") if flash == 0 else Color("#ffeabf")
+	if elite and flash == 0:
+		plate = Color("#a28b63")
 	var step := sin(anim * 12) * minf(absf(velocity.x)/15.0, 8)
 	draw_line(Vector2(-7,1), Vector2(-7+step,21), plate.darkened(0.24), 8)
 	draw_line(Vector2(6,1), Vector2(6-step,21), plate.darkened(0.37), 7)

@@ -1,10 +1,10 @@
-# Ashen Crown
+# Ashen Oath · Grave of Kings
 
-A local Godot 4.x combat prototype covering Milestones 1 and 2. The Shrine Yard contains one respawning Hollow Soldier. Win the duel, take the Ember reward, and rest at the shrine to repeat the encounter.
+Milestone 3 expands the Ashen Crown combat prototype into an eleven-room expedition. Start at Ashen Shrine, descend through a royal burial ground, and release the Bell Tower lift to open a direct route back to the sanctuary. The expedition ends at the Bell Warden's fog gate.
 
 ## Run
 
-Import `project.godot` in the Godot Project Manager and press F6 with `world/arena.tscn` open, or press F5 from anywhere. From the command line, run `godot --path .` from this directory. No asset downloads are needed.
+Import `project.godot` in Godot 4 and press **F5**, or run `godot --path .` from this directory. Godot 4.7.2 was used for verification. Art and sound are generated in the project. A copy of the original practice arena remains available as `world/arena.tscn`.
 
 | Action | Keyboard / mouse | Controller |
 | --- | --- | --- |
@@ -12,31 +12,42 @@ Import `project.godot` in the Godot Project Manager and press F6 with `world/are
 | Sprint | Hold Ctrl | Hold L3 |
 | Jump | Space | South button |
 | Roll | Shift | East button |
-| Light attack | J or left click | West button |
-| Heavy attack | K or right click | Right bumper |
+| Light / heavy strike | J / K or left / right click | West button / right bumper |
 | Guard / parry | Hold / time Q | Left bumper |
 | Heal | R | North button |
 | Lock on | F | R3 |
-| Interact | E | D-pad up |
-| Equipment | Tab | Back / Select |
-| Pause | Escape | Start |
+| Interact / advance dialogue | E | D-pad up |
+| Equipment and items | Tab | Back / Select |
+| Pause / leave dialogue | Esc | Start |
 
-Tap guard shortly before a frontal attack to parry. A successful parry opens a critical hit. Follow up only when you have enough stamina to attack. Press light attack during a swing to queue the next strike after recovery. Hold off on healing until the soldier is recovering. Controller button mappings are provided, with physical hardware and menu navigation still to verify.
+Interact with doors to change rooms. Locked passages and the lift take a second interaction to enter after you open them. Bonfires restore resources and reset normal encounters throughout the region. The Vigil Sword starts equipped. Exploration unlocks the existing Ash Daggers and Grave Cleaver.
 
-## Milestone 1
+## Saves
 
-- Implemented knight movement, jump, sprint, roll, light attacks, stamina, flasks, and a test arena with one enemy.
-- Main files are `world/arena.tscn`, `world/arena.gd`, `actors/player.tscn`, `actors/player.gd`, `actors/enemy.tscn`, `actors/enemy.gd`, and `combat/vitals.gd`.
-- Tested keyboard action input, collision with the floor, movement, jumping, roll timing, healing, exhaustion, enemy detection and attacks, death, and respawn.
-- Known limits are one arena and one enemy type. Milestone 2 adds the combat mechanics below.
+The new JSON save at `user://grave_of_kings.save` records souls, inventory, equipment, bonfires, doors, shortcuts, secrets, dialogue completion, and the active recovery marker. It also records the current room and the safe entry used to reach it. Progress saves on room travel, permanent interactions, equipment changes, death, and window close. It keeps one previous snapshot for recovery if the primary save becomes unreadable. Reloads start at the saved room entry with saved resources and fresh normal enemies. The prototype arena had no persistent saves.
 
-## Milestone 2
+## Project files
 
-- Implemented attack startup, contact and recovery, queued combos, heavy attacks, guard, parry, guard breaks, criticals, reaction and stagger, and an expanded enemy state machine. The three weapons vary in reach, speed, damage, and stamina use.
-- Added `combat/strike.gd` and `ui/arena_hud.gd`. Updated the actor and arena scripts. Included `tests/arena_smoke.gd`.
-- Added an arena HUD, pause and equipment menus, a rest point, a victory reward, and one recoverable Ember drop. Runtime session progress resets when the game exits.
-- Known limits include procedural placeholder art, no audio, and fixed input bindings. Milestone 3 is Forsaken Grave, with hazards, loot, doors, and exploration.
+| Path | Purpose |
+| --- | --- |
+| `world/region/expedition.tscn`, `expedition.gd` | One player, camera, and HUD across all room transitions; interaction, checkpoint, and soul recovery integration |
+| `world/region/layout.gd`, `room.gd` | Handcrafted room layout, stable identifiers, encounter placement, reusable terrain and room construction |
+| `world/region/landmark.gd`, `world_state.gd` | Doors, keys, lift, bonfires, loot, secret, NPC and fog gate interaction data; save and backup |
+| `world/region/scenery.gd`, `atmosphere_audio.gd` | Original procedural gothic scenery, lighting, ash, fog, and synthesized room audio |
+| `ui/expedition_hud.gd`, `ui/arena_hud.gd` | Expedition HUD, dialogue, equipment and item descriptions; shared menu and drawing helpers |
+| `world/controls.gd`, `world/arena.gd` | Shared prototype input bindings and retained practice arena |
+| `actors/player.gd`, `actors/enemy.gd` | Multiple combat targets, room relocation, enemy territories, and coordinated attack starts |
+| `project.godot`, `tests/expedition_smoke.gd` | Expedition entry point and integration coverage |
 
-## Verify
+## Testing
 
-Run `godot --headless --path . --script tests/arena_smoke.gd`. The test drives real input actions and physics ticks. It also injects hits in targeted combat-state checks and exits nonzero on failure.
+Run from the project directory.
+
+```sh
+godot --headless --fixed-fps 60 --path . --script tests/arena_smoke.gd
+godot --headless --fixed-fps 60 --path . --script tests/expedition_smoke.gd
+```
+
+The expedition test uses movement, jump and interaction input to reach each area, visit optional routes, collect every pickup, and check lock ordering and both sides of the lift. It fights the Cemetery Gates soldier with a live AI and suspends other enemies for the route and geometry checks. Separate tests inject deaths in eight regional rooms and trigger a real pit fall to verify checkpoint and soul recovery behavior. Reload tests cover doors, keys, loot, inventory, markers, and recovery from a truncated save.
+
+A rendered keyboard smoke check covered the opening sanctuary, Ashkeeper dialogue and the transition into Cemetery Gates. Full human playtesting, first-play duration, controller hardware, audio listening, and a sustained 60 FPS target remain unverified. The Bell Warden entrance stays closed and reports that the encounter is unavailable. The expedition includes the transition signal for a future boss implementation.

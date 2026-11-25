@@ -67,7 +67,7 @@ func open_menu(next: String) -> void:
 	menu_title.add_theme_font_size_override("font_size", 29)
 	weapons.add_child(menu_title)
 	if menu == "equipment":
-		for i in range(arena.player.WEAPONS.size()):
+		for i in weapon_indices():
 			var data: Array = arena.player.WEAPONS[i]
 			var equipped := "  •  Equipped" if i == arena.player.weapon else ""
 			add_button("%s  ·  %s%s" % [data[0], data[1], equipped], equip.bind(i))
@@ -76,6 +76,9 @@ func open_menu(next: String) -> void:
 		add_button("Equipment", open_menu.bind("equipment"))
 	if menu == "equipment":
 		add_button("Return to arena", open_menu.bind(""))
+
+func weapon_indices() -> Array:
+	return range(arena.player.WEAPONS.size())
 
 func equip(index: int) -> void:
 	arena.player.weapon = index

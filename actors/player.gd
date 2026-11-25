@@ -20,6 +20,7 @@ var elapsed := 0.0
 var weapon := 0
 var flasks := MAX_FLASKS
 var target: CharacterBody2D
+var opponents: Array[CharacterBody2D] = []
 var lock_on := false
 var attack: Strike
 var hit := false
@@ -77,9 +78,10 @@ func _physics_process(delta: float) -> void:
 			if not heavy and elapsed >= attack.startup and Input.is_action_just_pressed("light"):
 				chain = true
 			if not hit and elapsed >= attack.startup and elapsed < attack.startup + attack.active:
-				if is_instance_valid(target) and attack.connects(self, target, facing):
+				var victim := strike_target()
+				if victim != null:
 					hit = true
-					target.receive(attack.damage, attack.poise, facing)
+					victim.receive(attack.damage, attack.poise, facing)
 			if elapsed >= attack.duration():
 				enter(State.FREE)
 				if chain and combo < 2:
@@ -111,9 +113,25 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	queue_redraw()
 
+func strike_target() -> CharacterBody2D:
+	if is_instance_valid(target) and target.vitals.health > 0 and attack.connects(self, target, facing):
+		return target
+	for opponent in opponents:
+		if opponent.vitals.health > 0 and attack.connects(self, opponent, facing):
+			return opponent
+	return null
+
+func relocate(point: Vector2) -> void:
+	global_position = point
+	velocity = Vector2.ZERO
+	lock_on = false
+	target = null
+	opponents.clear()
+	enter(State.FREE)
+
 func free_move() -> void:
 	var axis := Input.get_axis("left", "right")
-	if lock_on and target.vitals.health > 0:
+	if lock_on and is_instance_valid(target) and target.vitals.health > 0:
 		facing = 1 if target.position.x >= position.x else -1
 	elif axis != 0:
 		facing = 1 if axis > 0 else -1
